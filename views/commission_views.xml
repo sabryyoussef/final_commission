@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sales_commission_line_tree" model="ir.ui.view">
+        <field name="name">sales.commission.line.tree</field>
+        <field name="model">sales.commission.line</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="invoice_date"/>
+                <field name="salesperson_id"/>
+                <field name="invoice_id"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <field name="line_subtotal"/>
+                <field name="commission_rate"/>
+                <field name="commission_amount"/>
+                <field name="move_type"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_sales_commission_line_pivot" model="ir.ui.view">
+        <field name="name">sales.commission.line.pivot</field>
+        <field name="model">sales.commission.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Commission Pivot">
+                <field name="commission_amount" type="measure"/>
+                <field name="line_subtotal" type="measure"/>
+                <field name="salesperson_id"/>
+                <field name="invoice_date" interval="month"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_sales_commission_line_graph" model="ir.ui.view">
+        <field name="name">sales.commission.line.graph</field>
+        <field name="model">sales.commission.line</field>
+        <field name="arch" type="xml">
+            <graph string="Commission Graph" type="bar">
+                <field name="salesperson_id"/>
+                <field name="commission_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_sales_commission_line_search" model="ir.ui.view">
+        <field name="name">sales.commission.line.search</field>
+        <field name="model">sales.commission.line</field>
+        <field name="arch" type="xml">
+            <search string="Commission Search">
+                <field name="salesperson_id"/>
+                <field name="invoice_id"/>
+                <field name="product_id"/>
+                <field name="invoice_date"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sales_commission_report" model="ir.actions.act_window">
+        <field name="name">Commission Report</field>
+        <field name="res_model">sales.commission.line</field>
+        <field name="view_mode">pivot,tree,graph</field>
+        <field name="view_id" ref="view_sales_commission_line_pivot"/>
+        <field name="context">
+            {
+                'pivot_measures': ['commission_amount', 'line_subtotal'],
+                'pivot_groupby': ['salesperson_id', 'invoice_date:month']
+            }
+        </field>
+        <field name="help" type="html">
+            <p>
+                Analyze commissions earned per salesperson and product. Use filters and pivot to drill down.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_sales_commission_report"
+              name="Commission Report"
+              parent="sale.menu_sale_report"
+              action="action_sales_commission_report"
+              groups="sales_commission_product.group_sales_commission_manager"/>
+</odoo>
+
