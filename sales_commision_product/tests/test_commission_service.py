@@ -16,6 +16,20 @@ class TestCommissionService(TransactionCase):
         self.User = self.env['res.users']
         self.AccountMove = self.env['account.move']
         
+        # Create sale journal if it doesn't exist
+        self.journal = self.env['account.journal'].search([
+            ('type', '=', 'sale'),
+            ('company_id', '=', self.env.company.id)
+        ], limit=1)
+        
+        if not self.journal:
+            self.journal = self.env['account.journal'].create({
+                'name': 'Test Sale Journal',
+                'code': 'TSJ',
+                'type': 'sale',
+                'company_id': self.env.company.id,
+            })
+        
         # Create test data
         self.partner = self.Partner.create({
             'name': 'Test Customer',
@@ -98,6 +112,7 @@ class TestCommissionService(TransactionCase):
             'invoice_user_id': self.salesperson.id,
             'move_type': 'out_invoice',
             'invoice_date': datetime.today().date(),
+            'journal_id': self.journal.id,
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product_without_commission.id,
                 'quantity': 1.0,
@@ -128,6 +143,7 @@ class TestCommissionService(TransactionCase):
             'invoice_user_id': self.salesperson.id,
             'move_type': 'out_refund',
             'invoice_date': datetime.today().date(),
+            'journal_id': self.journal.id,
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product_with_commission.id,
                 'quantity': 1.0,
@@ -191,6 +207,7 @@ class TestCommissionService(TransactionCase):
             'invoice_user_id': self.salesperson.id,
             'move_type': 'out_invoice',
             'invoice_date': datetime.today().date(),
+            'journal_id': self.journal.id,
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product_with_commission.id,
                 'quantity': 1.0,
