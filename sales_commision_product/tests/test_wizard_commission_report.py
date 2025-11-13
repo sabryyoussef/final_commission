@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo.tests.common import TransactionCase
+from odoo import fields
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
@@ -15,26 +16,45 @@ class TestWizardCommissionReport(TransactionCase):
         self.Partner = self.env['res.partner']
         self.User = self.env['res.users']
         self.AccountMove = self.env['account.move']
+        self.AccountAccount = self.env['account.account']
+        self.AccountJournal = self.env['account.journal']
         
-        # Create sale journal if it doesn't exist
-        self.journal = self.env['account.journal'].search([
-            ('type', '=', 'sale'),
-            ('company_id', '=', self.env.company.id)
-        ], limit=1)
+        company = self.env.company
         
-        if not self.journal:
-            self.journal = self.env['account.journal'].create({
-                'name': 'Test Sale Journal',
-                'code': 'TWCR',
-                'type': 'sale',
-                'company_id': self.env.company.id,
-            })
-        
-        # Create test data
-        self.partner = self.Partner.create({
-            'name': 'Test Customer Report',
+        # Create minimal receivable account
+        self.receivable_account = self.AccountAccount.create({
+            'name': 'Test Receivable',
+            'code': 'TREC003',
+            'account_type': 'asset_receivable',
+            'reconcile': True,
+            'company_id': company.id,
         })
         
+        # Create minimal income account
+        self.income_account = self.AccountAccount.create({
+            'name': 'Test Income',
+            'code': 'TINC003',
+            'account_type': 'income',
+            'company_id': company.id,
+        })
+        
+        # Create sale journal
+        self.journal = self.AccountJournal.create({
+            'name': 'Test Sale Journal',
+            'code': 'TWCR',
+            'type': 'sale',
+            'company_id': company.id,
+            'default_account_id': self.income_account.id,
+        })
+        
+        # Create test partner with receivable account and NO payment term
+        self.partner = self.Partner.create({
+            'name': 'Test Customer Report',
+            'property_account_receivable_id': self.receivable_account.id,
+            'property_payment_term_id': False,
+        })
+        
+        # Create test salespersons
         self.salesperson1 = self.User.create({
             'name': 'Salesperson One',
             'login': 'salesperson1_report',
@@ -47,28 +67,16 @@ class TestWizardCommissionReport(TransactionCase):
             'email': 'sp2@test.com',
         })
         
+        # Create test product with income account
         self.product = self.Product.create({
             'name': 'Test Product Report',
             'type': 'consu',
             'commission_rate': 10.0,
             'list_price': 100.0,
+            'property_account_income_id': self.income_account.id,
         })
         
-        # Get income account for invoice lines
-        self.account_income = self.env['account.account'].search([
-            ('account_type', '=', 'income'),
-            ('company_id', '=', self.env.company.id)
-        ], limit=1)
-        
-        if not self.account_income:
-            self.account_income = self.env['account.account'].create({
-                'name': 'Product Sales',
-                'code': 'TEST402',
-                'account_type': 'income',
-                'company_id': self.env.company.id,
-            })
-        
-        self.today = datetime.today().date()
+        self.today = fields.Date.today()
         self.yesterday = self.today - timedelta(days=1)
 
     def test_wizard_create_default_values(self):
@@ -314,11 +322,12 @@ class TestWizardCommissionReport(TransactionCase):
             'move_type': 'out_invoice',
             'invoice_date': invoice_date,
             'journal_id': self.journal.id,
+            'invoice_payment_term_id': False,  # ✅ NO payment terms
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product.id,
                 'quantity': 1.0,
                 'price_unit': 100.0,
-                'account_id': self.account_income.id,
+                'account_id': self.income_account.id,
             })],
         })
 

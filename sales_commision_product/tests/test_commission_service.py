@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo.tests.common import TransactionCase
+from odoo import fields
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 
@@ -15,37 +16,58 @@ class TestCommissionService(TransactionCase):
         self.Partner = self.env['res.partner']
         self.User = self.env['res.users']
         self.AccountMove = self.env['account.move']
+        self.AccountAccount = self.env['account.account']
+        self.AccountJournal = self.env['account.journal']
         
-        # Create sale journal if it doesn't exist
-        self.journal = self.env['account.journal'].search([
-            ('type', '=', 'sale'),
-            ('company_id', '=', self.env.company.id)
-        ], limit=1)
+        company = self.env.company
         
-        if not self.journal:
-            self.journal = self.env['account.journal'].create({
-                'name': 'Test Sale Journal',
-                'code': 'TSJ',
-                'type': 'sale',
-                'company_id': self.env.company.id,
-            })
-        
-        # Create test data
-        self.partner = self.Partner.create({
-            'name': 'Test Customer',
+        # Create minimal receivable account
+        self.receivable_account = self.AccountAccount.create({
+            'name': 'Test Receivable',
+            'code': 'TREC002',
+            'account_type': 'asset_receivable',
+            'reconcile': True,
+            'company_id': company.id,
         })
         
+        # Create minimal income account
+        self.income_account = self.AccountAccount.create({
+            'name': 'Test Income',
+            'code': 'TINC002',
+            'account_type': 'income',
+            'company_id': company.id,
+        })
+        
+        # Create sale journal
+        self.journal = self.AccountJournal.create({
+            'name': 'Test Sale Journal',
+            'code': 'TSJ2',
+            'type': 'sale',
+            'company_id': company.id,
+            'default_account_id': self.income_account.id,
+        })
+        
+        # Create test partner with receivable account and NO payment term
+        self.partner = self.Partner.create({
+            'name': 'Test Customer',
+            'property_account_receivable_id': self.receivable_account.id,
+            'property_payment_term_id': False,
+        })
+        
+        # Create test salesperson
         self.salesperson = self.User.create({
             'name': 'Test Salesperson',
             'login': 'test_salesperson_service',
             'email': 'salesperson_service@test.com',
         })
         
+        # Create test products with income account
         self.product_with_commission = self.Product.create({
             'name': 'Product with Commission',
             'type': 'consu',
             'commission_rate': 15.0,
             'list_price': 200.0,
+            'property_account_income_id': self.income_account.id,
         })
         
         self.product_without_commission = self.Product.create({
@@ -53,21 +75,8 @@ class TestCommissionService(TransactionCase):
             'type': 'consu',
             'commission_rate': 0.0,
             'list_price': 100.0,
+            'property_account_income_id': self.income_account.id,
         })
-        
-        # Get income account for invoice lines
-        self.account_income = self.env['account.account'].search([
-            ('account_type', '=', 'income'),
-            ('company_id', '=', self.env.company.id)
-        ], limit=1)
-        
-        if not self.account_income:
-            self.account_income = self.env['account.account'].create({
-                'name': 'Product Sales',
-                'code': 'TEST401',
-                'account_type': 'income',
-                'company_id': self.env.company.id,
-            })
 
     def test_run_commission_sync_creates_lines(self):
         """Test that run_commission_sync creates commission lines for paid invoices."""
@@ -222,13 +231,14 @@ class TestCommissionService(TransactionCase):
             'partner_id': self.partner.id,
             'invoice_user_id': self.salesperson.id,
             'move_type': 'out_invoice',
-            'invoice_date': datetime.today().date(),
+            'invoice_date': fields.Date.today(),
             'journal_id': self.journal.id,
+            'invoice_payment_term_id': False,  # ✅ NO payment terms
             'invoice_line_ids': [(0, 0, {
                 'product_id': self.product_with_commission.id,
                 'quantity': 1.0,
                 'price_unit': 200.0,
-                'account_id': self.account_income.id,
+                'account_id': self.income_account.id,
             })],
         })
         invoice.action_post()
