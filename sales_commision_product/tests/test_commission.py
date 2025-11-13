@@ -71,9 +71,11 @@ class TestCommission(TransactionCase):
     def test_commission_line_create(self):
         """Test creating a commission line."""
         invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
         
         commission = self.CommissionLine.create({
             'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
             'invoice_date': invoice.invoice_date,
             'salesperson_id': self.salesperson.id,
             'product_id': self.product.id,
@@ -95,9 +97,11 @@ class TestCommission(TransactionCase):
     def test_commission_line_search_by_salesperson(self):
         """Test searching commission lines by salesperson."""
         invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
         
         commission = self.CommissionLine.create({
             'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
             'invoice_date': invoice.invoice_date,
             'salesperson_id': self.salesperson.id,
             'product_id': self.product.id,
@@ -120,9 +124,11 @@ class TestCommission(TransactionCase):
         yesterday = today - timedelta(days=1)
         
         invoice = self._create_invoice(invoice_date=yesterday)
+        invoice_line = invoice.invoice_line_ids[0]
         
         commission = self.CommissionLine.create({
             'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
             'invoice_date': yesterday,
             'salesperson_id': self.salesperson.id,
             'product_id': self.product.id,
@@ -143,9 +149,11 @@ class TestCommission(TransactionCase):
     def test_commission_line_name_get(self):
         """Test name_get method returns correct format."""
         invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
         
         commission = self.CommissionLine.create({
             'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
             'invoice_date': invoice.invoice_date,
             'salesperson_id': self.salesperson.id,
             'product_id': self.product.id,
@@ -163,9 +171,11 @@ class TestCommission(TransactionCase):
     def test_commission_line_refund_negative_amount(self):
         """Test that refund commission lines have negative amounts."""
         invoice = self._create_invoice(move_type='out_refund')
+        invoice_line = invoice.invoice_line_ids[0]
         
         commission = self.CommissionLine.create({
             'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
             'invoice_date': invoice.invoice_date,
             'salesperson_id': self.salesperson.id,
             'product_id': self.product.id,
