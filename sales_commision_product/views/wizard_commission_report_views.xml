@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_wizard_commission_report_form" model="ir.ui.view">
+        <field name="name">wizard.commission.report.form</field>
+        <field name="model">wizard.commission.report</field>
+        <field name="arch" type="xml">
+            <form string="Commission Financial Report">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <span>Commission Financial Report</span>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="salesperson_ids" widget="many2many_tags"/>
+                            <field name="status_filter"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <h4><i class="fa fa-info-circle"/> Report Options</h4>
+                        <ul>
+                            <li><strong>Paid Only:</strong> Shows commissions from fully paid invoices (default)</li>
+                            <li><strong>Posted Only (Not Paid):</strong> Shows forecast commissions from posted but unpaid invoices</li>
+                            <li><strong>All Posted Invoices:</strong> Shows commissions from both paid and unpaid invoices</li>
+                        </ul>
+                        <p>Leave salespersons empty to include all salespeople.</p>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_print_pdf" string="Print PDF" 
+                            type="object" class="btn-primary"/>
+                    <button name="action_print_excel" string="Export to Excel" 
+                            type="object" class="btn-success"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wizard_commission_report" model="ir.actions.act_window">
+        <field name="name">Commission Financial Report</field>
+        <field name="res_model">wizard.commission.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_sales_commission_line"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>

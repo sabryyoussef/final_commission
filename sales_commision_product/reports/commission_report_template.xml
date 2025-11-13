@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_commission_financial_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Header -->
+                        <div class="text-center">
+                            <h2>Commission Financial Report</h2>
+                            <p>
+                                <strong>Period:</strong> <span t-esc="o.date_from"/> to <span t-esc="o.date_to"/><br/>
+                                <strong>Status Filter:</strong> 
+                                <span t-if="o.status_filter == 'paid'">Paid Only</span>
+                                <span t-if="o.status_filter == 'posted'">Posted Only (Not Paid)</span>
+                                <span t-if="o.status_filter == 'all'">All Posted Invoices</span><br/>
+                                <span t-if="o.salesperson_ids">
+                                    <strong>Salespersons:</strong> 
+                                    <span t-esc="', '.join(o.salesperson_ids.mapped('name'))"/>
+                                </span>
+                            </p>
+                        </div>
+
+                        <t t-set="data" t-value="o._get_commission_data()"/>
+                        
+                        <!-- Summary Section -->
+                        <h3 class="mt-4">Summary by Salesperson</h3>
+                        <table class="table table-sm table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Salesperson</th>
+                                    <th class="text-right">Total Sales</th>
+                                    <th class="text-right">Total Returns</th>
+                                    <th class="text-right">Net Sales</th>
+                                    <th class="text-right">Total Commission</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="grand_sales" t-value="0.0"/>
+                                <t t-set="grand_returns" t-value="0.0"/>
+                                <t t-set="grand_commission" t-value="0.0"/>
+                                
+                                <t t-foreach="sorted(data.keys(), key=lambda x: data[x]['salesperson'].name)" t-as="sp_id">
+                                    <t t-set="sp_data" t-value="data[sp_id]"/>
+                                    <t t-set="net_sales" t-value="sp_data['total_sales'] - sp_data['total_returns']"/>
+                                    <t t-set="grand_sales" t-value="grand_sales + sp_data['total_sales']"/>
+                                    <t t-set="grand_returns" t-value="grand_returns + sp_data['total_returns']"/>
+                                    <t t-set="grand_commission" t-value="grand_commission + sp_data['total_commission']"/>
+                                    
+                                    <tr>
+                                        <td><span t-esc="sp_data['salesperson'].name"/></td>
+                                        <td class="text-right">
+                                            <span t-esc="sp_data['total_sales']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="sp_data['total_returns']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="net_sales" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="sp_data['total_commission']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                
+                                <!-- Grand Total -->
+                                <tr class="font-weight-bold">
+                                    <td><strong>GRAND TOTAL</strong></td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="grand_sales" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="grand_returns" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="grand_sales - grand_returns" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="grand_commission" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Detailed Lines Section (Grouped by Salesperson) -->
+                        <h3 class="mt-5">Detailed Commission Lines</h3>
+                        
+                        <t t-foreach="sorted(data.keys(), key=lambda x: data[x]['salesperson'].name)" t-as="sp_id">
+                            <t t-set="sp_data" t-value="data[sp_id]"/>
+                            
+                            <div class="mt-4">
+                                <h4 class="bg-light p-2">
+                                    <span t-esc="sp_data['salesperson'].name"/> - 
+                                    Commission: <span t-esc="sp_data['total_commission']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                </h4>
+                                
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Invoice</th>
+                                            <th>Product</th>
+                                            <th class="text-right">Qty</th>
+                                            <th class="text-right">Subtotal</th>
+                                            <th class="text-right">Rate</th>
+                                            <th class="text-right">Commission</th>
+                                            <th>Type</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="sp_data['lines']" t-as="line">
+                                            <tr>
+                                                <td><span t-esc="line['invoice_date']"/></td>
+                                                <td><span t-esc="line['invoice_number']"/></td>
+                                                <td><span t-esc="line['product_name']"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f' % line['quantity']"/></td>
+                                                <td class="text-right">
+                                                    <span t-esc="line['line_subtotal']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                                </td>
+                                                <td class="text-right"><span t-esc="'%.2f%%' % line['commission_rate']"/></td>
+                                                <td class="text-right">
+                                                    <span t-esc="line['commission_amount']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
+                                                </td>
+                                                <td><span t-esc="line['move_type']"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </t>
+                        
+                        <div class="mt-5 text-center text-muted">
+                            <small>
+                                Generated on <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/>
+                            </small>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
