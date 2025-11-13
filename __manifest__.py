@@ -13,6 +13,7 @@
         "data/commission_cron.xml",
         "views/product_views.xml",
         "views/commission_views.xml",
+        "views/wizard_commission_sync_views.xml",
     ],
     "installable": True,
     "application": False,

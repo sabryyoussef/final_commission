@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_wizard_commission_sync_form" model="ir.ui.view">
+        <field name="name">wizard.commission.sync.form</field>
+        <field name="model">wizard.commission.sync</field>
+        <field name="arch" type="xml">
+            <form string="Generate Commission Data">
+                <sheet>
+                    <group>
+                        <div class="oe_title">
+                            <h1>
+                                <span>Generate Commission Data</span>
+                            </h1>
+                        </div>
+                        <div class="alert alert-info" role="alert">
+                            <p>
+                                This wizard allows you to manually generate commission data on demand,
+                                instead of waiting for the nightly scheduled action.
+                            </p>
+                            <p>
+                                Click the button below to synchronize commission lines from invoice lines.
+                            </p>
+                        </div>
+                        <field name="message" nolabel="1" widget="html"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_run_sync" string="Generate Commission Data" 
+                            type="object" class="btn-primary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wizard_commission_sync" model="ir.actions.act_window">
+        <field name="name">Generate Commission Data</field>
+        <field name="res_model">wizard.commission.sync</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_sales_commission_line"/>
+        <field name="binding_view_types">list</field>
+    </record>
+</odoo>
