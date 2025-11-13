@@ -18,6 +18,9 @@
         "reports/commission_report_template.xml",
         "views/commission_views.xml",
     ],
+    "demo": [
+        "data/demo_data.xml",
+    ],
     "installable": True,
     "application": False,
     "license": "OEEL-1",

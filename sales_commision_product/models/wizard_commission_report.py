@@ -119,7 +119,20 @@ class WizardCommissionReport(models.TransientModel):
                 'move_type': 'Invoice' if line.move_type == 'out_invoice' else 'Refund',
             })
         
-        return data_by_salesperson
+        # Return as list sorted by salesperson name (for QWeb compatibility)
+        # QWeb can't use lambda functions, so we pre-sort here
+        sorted_data = [
+            {
+                'salesperson_id': sp_id,
+                **data
+            }
+            for sp_id, data in sorted(
+                data_by_salesperson.items(),
+                key=lambda x: x[1]['salesperson'].name
+            )
+        ]
+        
+        return sorted_data
 
     def action_print_excel(self):
         """Generate Excel report and return as download."""
@@ -167,8 +180,8 @@ class WizardCommissionReport(models.TransientModel):
         grand_returns = 0.0
         grand_commission = 0.0
         
-        for sp_id in sorted(data.keys(), key=lambda x: data[x]['salesperson'].name):
-            sp_data = data[sp_id]
+        # data is now a list, not a dict
+        for sp_data in data:
             total_sales = sp_data['total_sales']
             total_returns = sp_data['total_returns']
             net_sales = total_sales - total_returns
@@ -230,8 +243,8 @@ class WizardCommissionReport(models.TransientModel):
         
         # Detail data
         row_num = 2
-        for sp_id in sorted(data.keys(), key=lambda x: data[x]['salesperson'].name):
-            sp_data = data[sp_id]
+        # data is now a list, not a dict
+        for sp_data in data:
             for line in sp_data['lines']:
                 ws_detail.cell(row=row_num, column=1).value = line['invoice_date']
                 ws_detail.cell(row=row_num, column=1).number_format = 'YYYY-MM-DD'
@@ -285,9 +298,11 @@ class WizardCommissionReport(models.TransientModel):
         """Generate PDF report."""
         self.ensure_one()
         
+        # Validate that we have data before generating report
         data = self._get_commission_data()
         
         if not data:
             raise UserError("No commission data found for the selected filters.")
         
-        return self.env.ref('sales_commision_product.action_report_commission_financial').report_action(self, data={'report_data': data})
+        # Generate report - the QWeb template will call _get_commission_data() during rendering
+        return self.env.ref('sales_commision_product.action_report_commission_financial').report_action(self)

@@ -40,8 +40,8 @@
                                 <t t-set="grand_returns" t-value="0.0"/>
                                 <t t-set="grand_commission" t-value="0.0"/>
                                 
-                                <t t-foreach="sorted(data.keys(), key=lambda x: data[x]['salesperson'].name)" t-as="sp_id">
-                                    <t t-set="sp_data" t-value="data[sp_id]"/>
+                                <!-- data is now a list, already sorted -->
+                                <t t-foreach="data" t-as="sp_data">
                                     <t t-set="net_sales" t-value="sp_data['total_sales'] - sp_data['total_returns']"/>
                                     <t t-set="grand_sales" t-value="grand_sales + sp_data['total_sales']"/>
                                     <t t-set="grand_returns" t-value="grand_returns + sp_data['total_returns']"/>
@@ -94,8 +94,8 @@
                         <!-- Detailed Lines Section (Grouped by Salesperson) -->
                         <h3 class="mt-5">Detailed Commission Lines</h3>
                         
-                        <t t-foreach="sorted(data.keys(), key=lambda x: data[x]['salesperson'].name)" t-as="sp_id">
-                            <t t-set="sp_data" t-value="data[sp_id]"/>
+                        <!-- data is now a list, already sorted -->
+                        <t t-foreach="data" t-as="sp_data">
                             
                             <div class="mt-4">
                                 <h4 class="bg-light p-2">

@@ -45,6 +45,21 @@ class TestCommission(TransactionCase):
             'commission_rate': 10.0,
             'list_price': 100.0,
         })
+        
+        # Get income account for invoice lines
+        self.account_income = self.env['account.account'].search([
+            ('account_type', '=', 'income'),
+            ('company_id', '=', self.env.company.id)
+        ], limit=1)
+        
+        if not self.account_income:
+            # Create income account if none exists
+            self.account_income = self.env['account.account'].create({
+                'name': 'Product Sales',
+                'code': 'TEST400',
+                'account_type': 'income',
+                'company_id': self.env.company.id,
+            })
 
     def test_commission_line_create(self):
         """Test creating a commission line."""
@@ -172,6 +187,7 @@ class TestCommission(TransactionCase):
                 'product_id': self.product.id,
                 'quantity': 1.0,
                 'price_unit': 100.0,
+                'account_id': self.account_income.id,
             })],
         })
         return invoice

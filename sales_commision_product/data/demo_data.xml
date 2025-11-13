@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Demo Products with Commission Rates -->
+        <record id="product_laptop_demo" model="product.product">
+            <field name="name">Demo Laptop Pro 15"</field>
+            <field name="type">consu</field>
+            <field name="list_price">1500.00</field>
+            <field name="standard_price">900.00</field>
+            <field name="commission_rate">8.5</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="product_smartphone_demo" model="product.product">
+            <field name="name">Demo Smartphone X</field>
+            <field name="type">consu</field>
+            <field name="list_price">899.00</field>
+            <field name="standard_price">600.00</field>
+            <field name="commission_rate">5.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="product_tablet_demo" model="product.product">
+            <field name="name">Demo Tablet Air</field>
+            <field name="type">consu</field>
+            <field name="list_price">650.00</field>
+            <field name="standard_price">400.00</field>
+            <field name="commission_rate">6.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="product_monitor_demo" model="product.product">
+            <field name="name">Demo 4K Monitor 27"</field>
+            <field name="type">consu</field>
+            <field name="list_price">450.00</field>
+            <field name="standard_price">280.00</field>
+            <field name="commission_rate">4.5</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="product_keyboard_demo" model="product.product">
+            <field name="name">Demo Mechanical Keyboard</field>
+            <field name="type">consu</field>
+            <field name="list_price">120.00</field>
+            <field name="standard_price">70.00</field>
+            <field name="commission_rate">10.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <record id="product_mouse_demo" model="product.product">
+            <field name="name">Demo Wireless Mouse</field>
+            <field name="type">consu</field>
+            <field name="list_price">45.00</field>
+            <field name="standard_price">25.00</field>
+            <field name="commission_rate">12.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
+        <!-- Demo Salespersons (Users) -->
+        <record id="user_salesperson_john" model="res.users">
+            <field name="name">John Smith (Sales Demo)</field>
+            <field name="login">john.smith@demo.com</field>
+            <field name="email">john.smith@demo.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="user_salesperson_sarah" model="res.users">
+            <field name="name">Sarah Johnson (Sales Demo)</field>
+            <field name="login">sarah.johnson@demo.com</field>
+            <field name="email">sarah.johnson@demo.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="user_salesperson_mike" model="res.users">
+            <field name="name">Mike Davis (Sales Demo)</field>
+            <field name="login">mike.davis@demo.com</field>
+            <field name="email">mike.davis@demo.com</field>
+            <field name="groups_id" eval="[(6, 0, [ref('sales_team.group_sale_salesman')])]"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Demo Customers -->
+        <record id="partner_customer_acme" model="res.partner">
+            <field name="name">Acme Corporation (Demo)</field>
+            <field name="email">contact@acme-demo.com</field>
+            <field name="customer_rank">1</field>
+            <field name="company_type">company</field>
+        </record>
+
+        <record id="partner_customer_techcorp" model="res.partner">
+            <field name="name">TechCorp Solutions (Demo)</field>
+            <field name="email">info@techcorp-demo.com</field>
+            <field name="customer_rank">1</field>
+            <field name="company_type">company</field>
+        </record>
+
+        <record id="partner_customer_globalinc" model="res.partner">
+            <field name="name">Global Inc (Demo)</field>
+            <field name="email">sales@globalinc-demo.com</field>
+            <field name="customer_rank">1</field>
+            <field name="company_type">company</field>
+        </record>
+
+        <!-- Demo Invoice 1: John Smith - Multiple products -->
+        <record id="demo_invoice_001" model="account.move">
+            <field name="move_type">out_invoice</field>
+            <field name="partner_id" ref="partner_customer_acme"/>
+            <field name="invoice_user_id" ref="user_salesperson_john"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=15)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_laptop_demo'),
+                    'name': 'Demo Laptop Pro 15&quot;',
+                    'quantity': 3,
+                    'price_unit': 1500.00,
+                }),
+                (0, 0, {
+                    'product_id': ref('product_monitor_demo'),
+                    'name': 'Demo 4K Monitor 27&quot;',
+                    'quantity': 3,
+                    'price_unit': 450.00,
+                }),
+            ]"/>
+        </record>
+
+        <!-- Demo Invoice 2: Sarah Johnson - Smartphones -->
+        <record id="demo_invoice_002" model="account.move">
+            <field name="move_type">out_invoice</field>
+            <field name="partner_id" ref="partner_customer_techcorp"/>
+            <field name="invoice_user_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_smartphone_demo'),
+                    'name': 'Demo Smartphone X',
+                    'quantity': 10,
+                    'price_unit': 899.00,
+                }),
+                (0, 0, {
+                    'product_id': ref('product_tablet_demo'),
+                    'name': 'Demo Tablet Air',
+                    'quantity': 5,
+                    'price_unit': 650.00,
+                }),
+            ]"/>
+        </record>
+
+        <!-- Demo Invoice 3: Mike Davis - Accessories -->
+        <record id="demo_invoice_003" model="account.move">
+            <field name="move_type">out_invoice</field>
+            <field name="partner_id" ref="partner_customer_globalinc"/>
+            <field name="invoice_user_id" ref="user_salesperson_mike"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=8)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_keyboard_demo'),
+                    'name': 'Demo Mechanical Keyboard',
+                    'quantity': 20,
+                    'price_unit': 120.00,
+                }),
+                (0, 0, {
+                    'product_id': ref('product_mouse_demo'),
+                    'name': 'Demo Wireless Mouse',
+                    'quantity': 20,
+                    'price_unit': 45.00,
+                }),
+            ]"/>
+        </record>
+
+        <!-- Demo Invoice 4: John Smith - Large tablet order -->
+        <record id="demo_invoice_004" model="account.move">
+            <field name="move_type">out_invoice</field>
+            <field name="partner_id" ref="partner_customer_acme"/>
+            <field name="invoice_user_id" ref="user_salesperson_john"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_tablet_demo'),
+                    'name': 'Demo Tablet Air',
+                    'quantity': 15,
+                    'price_unit': 650.00,
+                }),
+            ]"/>
+        </record>
+
+        <!-- Demo Invoice 5: Sarah Johnson - Mixed order -->
+        <record id="demo_invoice_005" model="account.move">
+            <field name="move_type">out_invoice</field>
+            <field name="partner_id" ref="partner_customer_techcorp"/>
+            <field name="invoice_user_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_laptop_demo'),
+                    'name': 'Demo Laptop Pro 15&quot;',
+                    'quantity': 5,
+                    'price_unit': 1500.00,
+                }),
+                (0, 0, {
+                    'product_id': ref('product_monitor_demo'),
+                    'name': 'Demo 4K Monitor 27&quot;',
+                    'quantity': 5,
+                    'price_unit': 450.00,
+                }),
+                (0, 0, {
+                    'product_id': ref('product_keyboard_demo'),
+                    'name': 'Demo Mechanical Keyboard',
+                    'quantity': 5,
+                    'price_unit': 120.00,
+                }),
+            ]"/>
+        </record>
+
+        <!-- Demo Refund: Mike Davis - Return some keyboards -->
+        <record id="demo_refund_001" model="account.move">
+            <field name="move_type">out_refund</field>
+            <field name="partner_id" ref="partner_customer_globalinc"/>
+            <field name="invoice_user_id" ref="user_salesperson_mike"/>
+            <field name="invoice_date" eval="(datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="invoice_line_ids" eval="[
+                (0, 0, {
+                    'product_id': ref('product_keyboard_demo'),
+                    'name': 'Demo Mechanical Keyboard - Return',
+                    'quantity': 3,
+                    'price_unit': 120.00,
+                }),
+            ]"/>
+        </record>
+
+    </data>
+</odoo>

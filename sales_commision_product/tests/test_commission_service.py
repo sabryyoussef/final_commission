@@ -54,6 +54,20 @@ class TestCommissionService(TransactionCase):
             'commission_rate': 0.0,
             'list_price': 100.0,
         })
+        
+        # Get income account for invoice lines
+        self.account_income = self.env['account.account'].search([
+            ('account_type', '=', 'income'),
+            ('company_id', '=', self.env.company.id)
+        ], limit=1)
+        
+        if not self.account_income:
+            self.account_income = self.env['account.account'].create({
+                'name': 'Product Sales',
+                'code': 'TEST401',
+                'account_type': 'income',
+                'company_id': self.env.company.id,
+            })
 
     def test_run_commission_sync_creates_lines(self):
         """Test that run_commission_sync creates commission lines for paid invoices."""
@@ -117,6 +131,7 @@ class TestCommissionService(TransactionCase):
                 'product_id': self.product_without_commission.id,
                 'quantity': 1.0,
                 'price_unit': 100.0,
+                'account_id': self.account_income.id,
             })],
         })
         invoice.action_post()
@@ -148,6 +163,7 @@ class TestCommissionService(TransactionCase):
                 'product_id': self.product_with_commission.id,
                 'quantity': 1.0,
                 'price_unit': 200.0,
+                'account_id': self.account_income.id,
             })],
         })
         refund.action_post()
@@ -212,6 +228,7 @@ class TestCommissionService(TransactionCase):
                 'product_id': self.product_with_commission.id,
                 'quantity': 1.0,
                 'price_unit': 200.0,
+                'account_id': self.account_income.id,
             })],
         })
         invoice.action_post()

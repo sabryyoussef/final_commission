@@ -54,6 +54,20 @@ class TestWizardCommissionReport(TransactionCase):
             'list_price': 100.0,
         })
         
+        # Get income account for invoice lines
+        self.account_income = self.env['account.account'].search([
+            ('account_type', '=', 'income'),
+            ('company_id', '=', self.env.company.id)
+        ], limit=1)
+        
+        if not self.account_income:
+            self.account_income = self.env['account.account'].create({
+                'name': 'Product Sales',
+                'code': 'TEST402',
+                'account_type': 'income',
+                'company_id': self.env.company.id,
+            })
+        
         self.today = datetime.today().date()
         self.yesterday = self.today - timedelta(days=1)
 
@@ -304,6 +318,7 @@ class TestWizardCommissionReport(TransactionCase):
                 'product_id': self.product.id,
                 'quantity': 1.0,
                 'price_unit': 100.0,
+                'account_id': self.account_income.id,
             })],
         })
 
