@@ -19,25 +19,6 @@ class TestCommission(TransactionCase):
         
         company = self.env.company
         
-        # Get or create account types
-        try:
-            receivable_type = self.env.ref('account.data_account_type_receivable')
-        except ValueError:
-            receivable_type = self.env['account.account.type'].create({
-                'name': 'Receivable',
-                'type': 'receivable',
-                'internal_group': 'asset',
-            })
-        
-        try:
-            income_type = self.env.ref('account.data_account_type_revenue')
-        except ValueError:
-            income_type = self.env['account.account.type'].create({
-                'name': 'Income',
-                'type': 'other',
-                'internal_group': 'income',
-            })
-        
         # Create minimal receivable account
         self.receivable_account = self.AccountAccount.create({
             'name': 'Test Receivable',
