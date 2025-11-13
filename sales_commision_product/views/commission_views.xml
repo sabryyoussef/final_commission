@@ -84,8 +84,15 @@
     <menuitem id="menu_wizard_commission_sync"
               name="Generate Commission Data"
               parent="sale.menu_sale_report"
-              action="wizard_commission_sync_views.action_wizard_commission_sync"
+              action="sales_commision_product.action_wizard_commission_sync"
               groups="sales_commision_product.group_sales_commission_manager"
               sequence="15"/>
+
+    <menuitem id="menu_wizard_commission_financial_report"
+              name="Commission Financial Report"
+              parent="sale.menu_sale_report"
+              action="sales_commision_product.action_wizard_commission_report"
+              groups="sales_commision_product.group_sales_commission_manager"
+              sequence="16"/>
 </odoo>
 

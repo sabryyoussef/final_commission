@@ -2,4 +2,5 @@
 "access_sales_commission_line_manager","access.sales.commission.line.manager","model_sales_commission_line","sales_commision_product.group_sales_commission_manager","1","1","1","1"
 "access_sales_commission_service_manager","access.sales.commission.service.manager","model_sales_commission_service","sales_commision_product.group_sales_commission_manager","1","1","1","1"
 "access_wizard_commission_sync_manager","access.wizard.commission.sync.manager","model_wizard_commission_sync","sales_commision_product.group_sales_commission_manager","1","1","1","1"
+"access_wizard_commission_report_manager","access.wizard.commission.report.manager","model_wizard_commission_report","sales_commision_product.group_sales_commission_manager","1","1","1","1"
 
