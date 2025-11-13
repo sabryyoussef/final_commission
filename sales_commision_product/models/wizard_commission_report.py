@@ -46,37 +46,46 @@ class WizardCommissionReport(models.TransientModel):
 
     def _get_commission_data(self):
         """
-        Query live data from account.move and account.move.line.
+        Query commission data from sales.commission.line model.
         Returns structured data grouped by salesperson.
+        
+        This method now queries from the sales.commission.line model (the same
+        data source as the Commission Report) instead of rebuilding from account.move,
+        ensuring data consistency and better performance.
         """
         self.ensure_one()
         
-        # Build domain based on filters
+        # Build domain for commission lines
         domain = [
-            ('move_type', 'in', ['out_invoice', 'out_refund']),
-            ('state', '=', 'posted'),
             ('invoice_date', '>=', self.date_from),
             ('invoice_date', '<=', self.date_to),
         ]
         
-        # Status filter
+        # Status filter - check the related invoice's payment state
         if self.status_filter == 'paid':
-            domain.append(('payment_state', 'in', ['paid', 'in_payment']))
+            domain.append(('invoice_id.payment_state', 'in', ['paid', 'in_payment']))
         elif self.status_filter == 'posted':
-            domain.append(('payment_state', 'not in', ['paid', 'in_payment']))
+            domain.append(('invoice_id.payment_state', 'not in', ['paid', 'in_payment']))
+        # 'all' doesn't need additional payment_state filter
+        
+        # Ensure invoice is still posted (in case it was cancelled after sync)
+        domain.append(('invoice_id.state', '=', 'posted'))
         
         # Salesperson filter
         if self.salesperson_ids:
-            domain.append(('invoice_user_id', 'in', self.salesperson_ids.ids))
+            domain.append(('salesperson_id', 'in', self.salesperson_ids.ids))
         
-        # Get invoices
-        invoices = self.env['account.move'].search(domain, order='invoice_user_id, invoice_date')
+        # Get commission lines ordered by salesperson and date
+        commission_lines = self.env['sales.commission.line'].search(
+            domain, 
+            order='salesperson_id, invoice_date'
+        )
         
         # Structure: {salesperson_id: {data}}
         data_by_salesperson = {}
         
-        for invoice in invoices:
-            salesperson = invoice.invoice_user_id
+        for line in commission_lines:
+            salesperson = line.salesperson_id
             if not salesperson:
                 continue
             
@@ -89,41 +98,26 @@ class WizardCommissionReport(models.TransientModel):
                     'lines': []
                 }
             
-            # Process invoice lines
-            for line in invoice.invoice_line_ids:
-                if line.display_type or not line.product_id:
-                    continue
-                
-                commission_rate = line.product_id.commission_rate
-                if commission_rate <= 0:
-                    continue
-                
-                # Calculate commission
-                line_subtotal = line.price_subtotal
-                commission_amount = line_subtotal * (commission_rate / 100.0)
-                
-                # Handle refunds (negative values)
-                if invoice.move_type == 'out_refund':
-                    line_subtotal = -line_subtotal
-                    commission_amount = -commission_amount
-                    data_by_salesperson[salesperson.id]['total_returns'] += abs(line_subtotal)
-                else:
-                    data_by_salesperson[salesperson.id]['total_sales'] += line_subtotal
-                
-                data_by_salesperson[salesperson.id]['total_commission'] += commission_amount
-                
-                # Add line detail
-                data_by_salesperson[salesperson.id]['lines'].append({
-                    'invoice_date': invoice.invoice_date,
-                    'invoice_number': invoice.name,
-                    'invoice_id': invoice.id,
-                    'product_name': line.product_id.display_name,
-                    'quantity': line.quantity,
-                    'line_subtotal': line_subtotal,
-                    'commission_rate': commission_rate,
-                    'commission_amount': commission_amount,
-                    'move_type': 'Invoice' if invoice.move_type == 'out_invoice' else 'Refund',
-                })
+            # Handle refunds (already negative in commission line)
+            if line.move_type == 'out_refund':
+                data_by_salesperson[salesperson.id]['total_returns'] += abs(line.line_subtotal)
+            else:
+                data_by_salesperson[salesperson.id]['total_sales'] += line.line_subtotal
+            
+            data_by_salesperson[salesperson.id]['total_commission'] += line.commission_amount
+            
+            # Add line detail
+            data_by_salesperson[salesperson.id]['lines'].append({
+                'invoice_date': line.invoice_date,
+                'invoice_number': line.invoice_id.name,
+                'invoice_id': line.invoice_id.id,
+                'product_name': line.product_id.display_name,
+                'quantity': line.quantity,
+                'line_subtotal': line.line_subtotal,
+                'commission_rate': line.commission_rate,
+                'commission_amount': line.commission_amount,
+                'move_type': 'Invoice' if line.move_type == 'out_invoice' else 'Refund',
+            })
         
         return data_by_salesperson
 
