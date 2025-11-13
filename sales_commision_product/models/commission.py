@@ -69,9 +69,17 @@ class SalesCommissionLine(models.Model):
         ),
     ]
 
+    def name_get(self):
+        """Return a readable name for commission lines."""
+        result = []
+        for record in self:
+            name = f"{record.salesperson_id.name} - {record.product_id.name} - {record.invoice_id.name}"
+            result.append((record.id, name))
+        return result
+    
     @api.model
     def create(self, vals):
-        # Ensure commission_rate mirrors the related product rate if not provided
+        """Override create to set commission_rate from product if not provided."""
         if not vals.get("commission_rate") and vals.get("product_id"):
             product = self.env["product.product"].browse(vals["product_id"])
             vals["commission_rate"] = product.product_tmpl_id.commission_rate
