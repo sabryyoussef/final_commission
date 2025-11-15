@@ -122,11 +122,11 @@
                                                 <td><span t-esc="line['invoice_date']"/></td>
                                                 <td><span t-esc="line['invoice_number']"/></td>
                                                 <td><span t-esc="line['product_name']"/></td>
-                                                <td class="text-right"><span t-esc="'%.2f' % line['quantity']"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f' % (line['quantity'] or 0)"/></td>
                                                 <td class="text-right">
                                                     <span t-esc="line['line_subtotal']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
                                                 </td>
-                                                <td class="text-right"><span t-esc="'%.2f%%' % line['commission_rate']"/></td>
+                                                <td class="text-right"><span t-esc="'%.2f%%' % (line['commission_rate'] or 0)"/></td>
                                                 <td class="text-right">
                                                     <span t-esc="line['commission_amount']" t-options="{'widget': 'monetary', 'display_currency': o.env.company.currency_id}"/>
                                                 </td>

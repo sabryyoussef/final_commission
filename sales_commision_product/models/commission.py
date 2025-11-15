@@ -34,8 +34,8 @@ class SalesCommissionLine(models.Model):
         required=True,
         index=True,
     )
-    quantity = fields.Float(string="Quantity", digits="Product Unit of Measure")
-    commission_rate = fields.Float(string="Commission Rate (%)")
+    quantity = fields.Float(string="Quantity", digits="Product Unit of Measure", default=0.0)
+    commission_rate = fields.Float(string="Commission Rate (%)", default=0.0)
     commission_amount = fields.Monetary(
         string="Commission Amount",
         currency_field="company_currency_id",
@@ -80,8 +80,8 @@ class SalesCommissionLine(models.Model):
     @api.model
     def create(self, vals):
         """Override create to set commission_rate from product if not provided."""
-        if not vals.get("commission_rate") and vals.get("product_id"):
+        if (not vals.get("commission_rate") or vals.get("commission_rate") is False) and vals.get("product_id"):
             product = self.env["product.product"].browse(vals["product_id"])
-            vals["commission_rate"] = product.product_tmpl_id.commission_rate
+            vals["commission_rate"] = product.product_tmpl_id.commission_rate or 0.0
         return super().create(vals)
 

@@ -112,9 +112,9 @@ class WizardCommissionReport(models.TransientModel):
                 'invoice_number': line.invoice_id.name,
                 'invoice_id': line.invoice_id.id,
                 'product_name': line.product_id.display_name,
-                'quantity': line.quantity,
+                'quantity': line.quantity or 0.0,
                 'line_subtotal': line.line_subtotal,
-                'commission_rate': line.commission_rate,
+                'commission_rate': line.commission_rate or 0.0,
                 'commission_amount': line.commission_amount,
                 'move_type': 'Invoice' if line.move_type == 'out_invoice' else 'Refund',
             })

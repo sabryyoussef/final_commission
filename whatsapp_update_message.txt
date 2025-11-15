@@ -1,0 +1,36 @@
+🎉 COMMISSION REPORT UPDATE - MAJOR ENHANCEMENT! 🎉
+
+Hey team! 👋
+
+Just deployed a HUGE improvement to our commission reporting system! 🚀
+
+🔥 WHAT'S NEW:
+
+✅ SMART FILTERING - Now you can filter commissions by:
+• "Paid Only" = Actual earned commissions (money in bank) 💰
+• "Posted Only" = Forecast commissions (expected earnings) 📊
+• "All Posted" = Complete sales pipeline view 📈
+
+✅ BETTER FORECASTING:
+• See projected commissions from unpaid invoices
+• Track actual vs expected earnings
+• Perfect for sales planning & cash flow! 💡
+
+✅ NEW DEFAULT:
+• Reports now show "Posted Only" by default
+• Gives you forecast view first (most requested!) 📋
+
+🎯 BUSINESS IMPACT:
+• Better sales forecasting
+• Clear separation of actual vs projected earnings
+• Complete commission pipeline visibility
+• Enhanced business intelligence 📊
+
+🔧 WHERE TO FIND IT:
+Sales → Reporting → Commission Financial Report
+
+Try the new filters and see your commission data in a whole new way! 
+
+Questions? Just ask! 💬
+
+#CommissionReporting #SalesIntelligence #BusinessGrowth
