@@ -32,9 +32,9 @@ class WizardCommissionReport(models.TransientModel):
         ('paid', 'Paid Only'),
         ('posted', 'Posted Only (Not Paid)'),
         ('all', 'All Posted Invoices')
-    ], string='Invoice Status', required=True, default='paid',
-        help="Paid: Only fully paid invoices\n"
-             "Posted Only: Posted but not paid (forecast)\n"
+    ], string='Invoice Status', required=True, default='posted',
+        help="Paid: Only fully paid invoices (actual earnings)\n"
+             "Posted Only: Posted but not paid (forecast earnings)\n"
              "All: Both paid and unpaid posted invoices")
 
     @api.constrains('date_from', 'date_to')

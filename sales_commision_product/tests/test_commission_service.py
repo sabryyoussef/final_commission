@@ -87,12 +87,11 @@ class TestCommissionService(TransactionCase):
         })
 
     def test_run_commission_sync_creates_lines(self):
-        """Test that run_commission_sync creates commission lines for paid invoices."""
+        """Test that run_commission_sync creates commission lines for all posted invoices."""
         # Create and post an invoice
         invoice = self._create_and_post_invoice()
         
-        # Mark invoice as paid
-        self._mark_invoice_paid(invoice)
+        # Don't mark as paid - should still create commission lines
         
         # Clear existing commission lines
         self.CommissionLine.search([]).unlink()
@@ -117,8 +116,8 @@ class TestCommissionService(TransactionCase):
         # Commission = 200 * 15% = 30
         self.assertAlmostEqual(commission.commission_amount, 30.0, places=2)
 
-    def test_run_commission_sync_skips_unpaid_invoices(self):
-        """Test that sync skips unpaid invoices."""
+    def test_run_commission_sync_includes_unpaid_invoices(self):
+        """Test that sync includes unpaid posted invoices."""
         # Create and post invoice (but don't mark as paid)
         invoice = self._create_and_post_invoice()
         
@@ -128,12 +127,20 @@ class TestCommissionService(TransactionCase):
         # Run commission sync
         self.CommissionService.run_commission_sync()
         
-        # Check no commission lines created for unpaid invoice
+        # Check commission lines created for unpaid invoice
         commission_lines = self.CommissionLine.search([
             ('invoice_id', '=', invoice.id)
         ])
         
-        self.assertFalse(commission_lines)
+        self.assertTrue(commission_lines)
+        self.assertEqual(len(commission_lines), 1)
+        
+        commission = commission_lines[0]
+        self.assertEqual(commission.salesperson_id.id, self.salesperson.id)
+        self.assertEqual(commission.product_id.id, self.product_with_commission.id)
+        self.assertEqual(commission.commission_rate, 15.0)
+        # Commission = 200 * 15% = 30
+        self.assertAlmostEqual(commission.commission_amount, 30.0, places=2)
 
     def test_run_commission_sync_skips_zero_commission_products(self):
         """Test that sync skips products with 0% commission rate."""
@@ -202,11 +209,42 @@ class TestCommissionService(TransactionCase):
         self.assertEqual(commission.move_type, 'out_refund')
         self.assertLess(commission.commission_amount, 0)
 
+    def test_commission_lines_for_paid_vs_unpaid(self):
+        """Test that commission lines are created for both paid and unpaid invoices."""
+        # Create two invoices - one paid, one unpaid
+        paid_invoice = self._create_and_post_invoice()
+        self._mark_invoice_paid(paid_invoice)
+        
+        unpaid_invoice = self._create_and_post_invoice()
+        # Leave unpaid
+        
+        # Clear existing commission lines
+        self.CommissionLine.search([]).unlink()
+        
+        # Run commission sync
+        result = self.CommissionService.run_commission_sync()
+        self.assertTrue(result)
+        
+        # Check commission lines created for both invoices
+        paid_commission = self.CommissionLine.search([
+            ('invoice_id', '=', paid_invoice.id)
+        ])
+        unpaid_commission = self.CommissionLine.search([
+            ('invoice_id', '=', unpaid_invoice.id)
+        ])
+        
+        self.assertTrue(paid_commission)
+        self.assertTrue(unpaid_commission)
+        self.assertEqual(len(paid_commission), 1)
+        self.assertEqual(len(unpaid_commission), 1)
+        
+        # Both should have same commission amount (same product)
+        self.assertEqual(paid_commission.commission_amount, unpaid_commission.commission_amount)
+    
     def test_run_commission_sync_prevents_duplicates(self):
         """Test that sync doesn't create duplicate commission lines."""
-        # Create and post an invoice
+        # Create and post an invoice (paid or unpaid doesn't matter now)
         invoice = self._create_and_post_invoice()
-        self._mark_invoice_paid(invoice)
         
         # Clear existing commission lines
         self.CommissionLine.search([]).unlink()
@@ -225,6 +263,64 @@ class TestCommissionService(TransactionCase):
         
         # Should not create duplicates
         self.assertEqual(count_first, count_second)
+
+    def test_commission_line_deletion_only_for_cancelled_invoices(self):
+        """Test that commission lines are only deleted when invoices are cancelled, not when payment state changes."""
+        # Create and post invoice
+        invoice = self._create_and_post_invoice()
+        
+        # Clear existing commission lines and run sync
+        self.CommissionLine.search([]).unlink()
+        self.CommissionService.run_commission_sync()
+        
+        # Verify commission line was created
+        commission_lines = self.CommissionLine.search([
+            ('invoice_id', '=', invoice.id)
+        ])
+        self.assertTrue(commission_lines)
+        initial_count = len(commission_lines)
+        
+        # Mark invoice as paid - should NOT delete commission lines
+        self._mark_invoice_paid(invoice)
+        self.CommissionService.run_commission_sync()
+        
+        commission_lines_after_payment = self.CommissionLine.search([
+            ('invoice_id', '=', invoice.id)
+        ])
+        self.assertEqual(len(commission_lines_after_payment), initial_count)
+        
+        # Cancel invoice - should delete commission lines
+        invoice.button_cancel()
+        self.CommissionService.run_commission_sync()
+        
+        commission_lines_after_cancel = self.CommissionLine.search([
+            ('invoice_id', '=', invoice.id)
+        ])
+        self.assertFalse(commission_lines_after_cancel)
+
+    def test_commission_sync_preserves_lines_for_unpaid_invoices(self):
+        """Test that commission lines are preserved for unpaid posted invoices."""
+        # Create unpaid invoice
+        invoice = self._create_and_post_invoice()
+        
+        # Run sync to create commission lines
+        self.CommissionLine.search([]).unlink()
+        self.CommissionService.run_commission_sync()
+        
+        # Verify commission line created for unpaid invoice
+        commission_lines = self.CommissionLine.search([
+            ('invoice_id', '=', invoice.id)
+        ])
+        self.assertTrue(commission_lines)
+        
+        # Run sync again - should preserve commission lines
+        self.CommissionService.run_commission_sync()
+        
+        commission_lines_after_second_sync = self.CommissionLine.search([
+            ('invoice_id', '=', invoice.id)
+        ])
+        self.assertTrue(commission_lines_after_second_sync)
+        self.assertEqual(len(commission_lines), len(commission_lines_after_second_sync))
 
     # NOTE: Removed test_run_commission_sync_error_handling
     # Odoo model methods like 'search' are read-only and cannot be mocked with patch.object.

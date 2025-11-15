@@ -36,7 +36,6 @@ class CommissionService(models.Model):
             invoice_lines = move_line_model.search([
                 ("move_id.state", "=", "posted"),
                 ("move_id.move_type", "=", "out_invoice"),
-                ("move_id.payment_state", "in", ["paid"]),
                 ("product_id", "!=", False),
                 ("display_type", "not in", ["line_section", "line_note"]),
             ])
@@ -92,8 +91,7 @@ class CommissionService(models.Model):
                         lines_to_unlink.append(commission_line.id)
                     else:
                         move = invoice_line.move_id
-                        if (move.state != 'posted' or 
-                            (move.move_type == 'out_invoice' and move.payment_state != 'paid')):
+                        if move.state != 'posted':
                             lines_to_unlink.append(commission_line.id)
                     continue
 

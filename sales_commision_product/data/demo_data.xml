@@ -69,6 +69,18 @@
             <field name="uom_po_id" ref="uom.product_uom_unit"/>
         </record>
 
+        <!-- Products with NO commission for testing -->
+        <record id="product_no_commission_demo" model="product.product">
+            <field name="name">Demo Service (No Commission)</field>
+            <field name="type">service</field>
+            <field name="list_price">200.00</field>
+            <field name="standard_price">0.00</field>
+            <field name="commission_rate">0.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="uom_id" ref="uom.product_uom_unit"/>
+            <field name="uom_po_id" ref="uom.product_uom_unit"/>
+        </record>
+
         <!-- Demo Salespersons (Users) -->
         <record id="user_salesperson_john" model="res.users">
             <field name="name">John Smith (Sales Demo)</field>
@@ -116,12 +128,198 @@
             <field name="company_type">company</field>
         </record>
 
-        <!-- NOTE: Demo invoices removed - they require chart of accounts to be installed.
-             In production/test environments with accounting configured, you can create
-             invoices manually using the demo products and salespersons above.
-             
-             For automated testing, see tests/ directory which properly sets up
-             accounts, journals, and invoices in a controlled environment. -->
+        <record id="partner_customer_startup" model="res.partner">
+            <field name="name">StartupXYZ (Demo)</field>
+            <field name="email">hello@startupxyz-demo.com</field>
+            <field name="customer_rank">1</field>
+            <field name="company_type">company</field>
+        </record>
+
+        <record id="partner_customer_enterprise" model="res.partner">
+            <field name="name">Enterprise Solutions Ltd (Demo)</field>
+            <field name="email">procurement@enterprise-demo.com</field>
+            <field name="customer_rank">1</field>
+            <field name="company_type">company</field>
+        </record>
+
+        <!-- Demo Commission Lines for Testing -->
+        <!-- These simulate commission data for different scenarios -->
+        
+        <!-- Scenario 1: John's Paid Invoice Commission -->
+        <record id="commission_line_john_paid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_john"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-001')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-001'), ('product_id', '!=', False)]"/>
+            <field name="product_id" ref="product_laptop_demo"/>
+            <field name="quantity">3.0</field>
+            <field name="commission_rate">8.5</field>
+            <field name="commission_amount">382.50</field>
+            <field name="line_subtotal">4500.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_john_paid_2" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_john"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-001')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-001'), ('product_id', '=', ref('product_monitor_demo'))]"/>
+            <field name="product_id" ref="product_monitor_demo"/>
+            <field name="quantity">3.0</field>
+            <field name="commission_rate">4.5</field>
+            <field name="commission_amount">60.75</field>
+            <field name="line_subtotal">1350.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 2: Sarah's Posted but Unpaid Commission -->
+        <record id="commission_line_sarah_unpaid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-UNPAID-002')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-UNPAID-002'), ('product_id', '=', ref('product_smartphone_demo'))]"/>
+            <field name="product_id" ref="product_smartphone_demo"/>
+            <field name="quantity">10.0</field>
+            <field name="commission_rate">5.0</field>
+            <field name="commission_amount">449.50</field>
+            <field name="line_subtotal">8990.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_sarah_unpaid_2" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-UNPAID-002')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-UNPAID-002'), ('product_id', '=', ref('product_tablet_demo'))]"/>
+            <field name="product_id" ref="product_tablet_demo"/>
+            <field name="quantity">5.0</field>
+            <field name="commission_rate">6.0</field>
+            <field name="commission_amount">195.00</field>
+            <field name="line_subtotal">3250.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 3: Mike's Mixed Status Commissions -->
+        <record id="commission_line_mike_paid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_mike"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-003')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-003'), ('product_id', '=', ref('product_keyboard_demo'))]"/>
+            <field name="product_id" ref="product_keyboard_demo"/>
+            <field name="quantity">20.0</field>
+            <field name="commission_rate">10.0</field>
+            <field name="commission_amount">240.00</field>
+            <field name="line_subtotal">2400.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_mike_paid_2" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_mike"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-003')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-003'), ('product_id', '=', ref('product_mouse_demo'))]"/>
+            <field name="product_id" ref="product_mouse_demo"/>
+            <field name="quantity">20.0</field>
+            <field name="commission_rate">12.0</field>
+            <field name="commission_amount">108.00</field>
+            <field name="line_subtotal">900.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 4: John's Unpaid Large Order -->
+        <record id="commission_line_john_unpaid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_john"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-UNPAID-004')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-UNPAID-004'), ('product_id', '=', ref('product_tablet_demo'))]"/>
+            <field name="product_id" ref="product_tablet_demo"/>
+            <field name="quantity">15.0</field>
+            <field name="commission_rate">6.0</field>
+            <field name="commission_amount">585.00</field>
+            <field name="line_subtotal">9750.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 5: Sarah's Recent Paid Order -->
+        <record id="commission_line_sarah_paid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-005')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-005'), ('product_id', '=', ref('product_laptop_demo'))]"/>
+            <field name="product_id" ref="product_laptop_demo"/>
+            <field name="quantity">5.0</field>
+            <field name="commission_rate">8.5</field>
+            <field name="commission_amount">637.50</field>
+            <field name="line_subtotal">7500.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_sarah_paid_2" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-005')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-005'), ('product_id', '=', ref('product_monitor_demo'))]"/>
+            <field name="product_id" ref="product_monitor_demo"/>
+            <field name="quantity">5.0</field>
+            <field name="commission_rate">4.5</field>
+            <field name="commission_amount">101.25</field>
+            <field name="line_subtotal">2250.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_sarah_paid_3" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_sarah"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PAID-005')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PAID-005'), ('product_id', '=', ref('product_keyboard_demo'))]"/>
+            <field name="product_id" ref="product_keyboard_demo"/>
+            <field name="quantity">5.0</field>
+            <field name="commission_rate">10.0</field>
+            <field name="commission_amount">60.00</field>
+            <field name="line_subtotal">600.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 6: Mike's Refund (Negative Commission) -->
+        <record id="commission_line_mike_refund_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_mike"/>
+            <field name="invoice_id" model="account.move" search="[('name', 'ilike', 'DEMO-REFUND-001'), ('move_type', '=', 'out_refund')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.move_type', '=', 'out_refund'), ('product_id', '=', ref('product_keyboard_demo'))]"/>
+            <field name="product_id" ref="product_keyboard_demo"/>
+            <field name="quantity">3.0</field>
+            <field name="commission_rate">10.0</field>
+            <field name="commission_amount">-36.00</field>
+            <field name="line_subtotal">-360.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 7: Mike's Unpaid Recent Order -->
+        <record id="commission_line_mike_unpaid_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_mike"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-UNPAID-006')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-UNPAID-006'), ('product_id', '=', ref('product_smartphone_demo'))]"/>
+            <field name="product_id" ref="product_smartphone_demo"/>
+            <field name="quantity">8.0</field>
+            <field name="commission_rate">5.0</field>
+            <field name="commission_amount">359.60</field>
+            <field name="line_subtotal">7192.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="commission_line_mike_unpaid_2" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_mike"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-UNPAID-006')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-UNPAID-006'), ('product_id', '=', ref('product_tablet_demo'))]"/>
+            <field name="product_id" ref="product_tablet_demo"/>
+            <field name="quantity">2.0</field>
+            <field name="commission_rate">6.0</field>
+            <field name="commission_amount">78.00</field>
+            <field name="line_subtotal">1300.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Scenario 8: John's Partial Payment Invoice -->
+        <record id="commission_line_john_partial_1" model="sales.commission.line">
+            <field name="salesperson_id" ref="user_salesperson_john"/>
+            <field name="invoice_id" model="account.move" search="[('name', '=', 'DEMO-PARTIAL-007')]"/>
+            <field name="invoice_line_id" model="account.move.line" search="[('move_id.name', '=', 'DEMO-PARTIAL-007'), ('product_id', '=', ref('product_laptop_demo'))]"/>
+            <field name="product_id" ref="product_laptop_demo"/>
+            <field name="quantity">2.0</field>
+            <field name="commission_rate">8.5</field>
+            <field name="commission_amount">255.00</field>
+            <field name="line_subtotal">3000.00</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
 
     </data>
 </odoo>

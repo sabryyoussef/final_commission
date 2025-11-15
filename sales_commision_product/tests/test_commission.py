@@ -189,6 +189,86 @@ class TestCommission(TransactionCase):
         self.assertEqual(commission.move_type, 'out_refund')
         self.assertLess(commission.commission_amount, 0)
 
+    def test_commission_line_create_sets_rate_from_product(self):
+        """Test that create method sets commission_rate from product if not provided."""
+        invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
+        
+        # Create commission without specifying commission_rate
+        commission = self.CommissionLine.create({
+            'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
+            'invoice_date': invoice.invoice_date,
+            'salesperson_id': self.salesperson.id,
+            'product_id': self.product.id,
+            'quantity': 1.0,
+            'line_subtotal': 100.0,
+            'commission_amount': 10.0,
+            'move_type': 'out_invoice',
+            # commission_rate not specified - should be set from product
+        })
+        
+        # Should automatically set commission_rate from product
+        self.assertEqual(commission.commission_rate, self.product.product_tmpl_id.commission_rate)
+        self.assertEqual(commission.commission_rate, 10.0)
+
+    def test_commission_line_create_preserves_explicit_rate(self):
+        """Test that create method preserves explicitly provided commission_rate."""
+        invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
+        
+        # Create commission with explicit commission_rate
+        commission = self.CommissionLine.create({
+            'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
+            'invoice_date': invoice.invoice_date,
+            'salesperson_id': self.salesperson.id,
+            'product_id': self.product.id,
+            'quantity': 1.0,
+            'line_subtotal': 100.0,
+            'commission_amount': 15.0,
+            'commission_rate': 15.0,  # Explicit rate different from product
+            'move_type': 'out_invoice',
+        })
+        
+        # Should preserve explicit rate, not use product rate
+        self.assertEqual(commission.commission_rate, 15.0)
+        self.assertNotEqual(commission.commission_rate, self.product.product_tmpl_id.commission_rate)
+
+    def test_commission_line_unique_constraint(self):
+        """Test that unique constraint prevents duplicate commission lines."""
+        invoice = self._create_invoice()
+        invoice_line = invoice.invoice_line_ids[0]
+        
+        # Create first commission line
+        self.CommissionLine.create({
+            'invoice_id': invoice.id,
+            'invoice_line_id': invoice_line.id,
+            'invoice_date': invoice.invoice_date,
+            'salesperson_id': self.salesperson.id,
+            'product_id': self.product.id,
+            'quantity': 1.0,
+            'line_subtotal': 100.0,
+            'commission_amount': 10.0,
+            'commission_rate': 10.0,
+            'move_type': 'out_invoice',
+        })
+        
+        # Try to create duplicate - should raise constraint error
+        with self.assertRaises(Exception):  # IntegrityError or ValidationError
+            self.CommissionLine.create({
+                'invoice_id': invoice.id,
+                'invoice_line_id': invoice_line.id,
+                'invoice_date': invoice.invoice_date,
+                'salesperson_id': self.salesperson.id,
+                'product_id': self.product.id,
+                'quantity': 2.0,  # Different quantity
+                'line_subtotal': 200.0,  # Different subtotal
+                'commission_amount': 20.0,  # Different commission
+                'commission_rate': 10.0,
+                'move_type': 'out_invoice',
+            })
+
     def _create_invoice(self, move_type='out_invoice', invoice_date=None):
         """Helper method to create a test invoice."""
         if invoice_date is None:
