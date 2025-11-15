@@ -24,9 +24,9 @@
                     <div class="alert alert-info" role="alert">
                         <h4><i class="fa fa-info-circle"/> Report Options</h4>
                         <ul>
-                            <li><strong>Paid Only:</strong> Shows commissions from fully paid invoices (default)</li>
-                            <li><strong>Posted Only (Not Paid):</strong> Shows forecast commissions from posted but unpaid invoices</li>
-                            <li><strong>All Posted Invoices:</strong> Shows commissions from both paid and unpaid invoices</li>
+                            <li><strong>Paid Only:</strong> Shows actual commissions from fully paid invoices</li>
+                            <li><strong>Posted Only (Not Paid):</strong> Shows forecast commissions from posted but unpaid invoices (default)</li>
+                            <li><strong>All Posted Invoices:</strong> Shows both actual and forecast commissions</li>
                         </ul>
                         <p>Leave salespersons empty to include all salespeople.</p>
                     </div>
